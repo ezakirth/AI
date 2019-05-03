@@ -7,14 +7,13 @@ import TreeNode from './TreeNode';
  * This is a cool extension of selector that executes randomly one of the actions in the array.
  */
 export default class SelectorRandomNode implements TreeNode {
-    actionArray: any;
-
-    constructor(actionArray) {
+    actionArray: any[];
+    constructor(actionArray: any[]) {
 
         this.actionArray = actionArray;
     }
 
-    execute(behaviourTreeInstanceState) {
+    execute(behaviourTreeInstanceState: BehaviourTreeInstance) {
 
         var state = behaviourTreeInstanceState.findStateForNode(this);
 
