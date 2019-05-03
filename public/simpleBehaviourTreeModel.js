@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by Pietro Polsinelli && Matteo Bicocchi on 15/05/2015.
  *
@@ -14,24 +16,27 @@
  * @param numberOfLoops 0 forever
  * @constructor
  */
-function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
-    if (typeof numberOfLoops == "undefined")
-        numberOfLoops = 1;
-    this.behaviourTree = behaviourTree;
-    this.actor = actor;
-    this.nodeAndState = [];
-    this.currentNode = null;
-    this.numberOfLoops = numberOfLoops;
-    this.numberOfRuns = 0;
-    this.finished = false;
-    this.findStateForNode = function (node) {
+var BehaviourTreeInstance = /** @class */ (function () {
+    function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
+        if (typeof numberOfLoops == "undefined")
+            numberOfLoops = 1;
+        this.behaviourTree = behaviourTree;
+        this.actor = actor;
+        this.nodeAndState = [];
+        this.currentNode = null;
+        this.numberOfLoops = numberOfLoops;
+        this.numberOfRuns = 0;
+        this.finished = false;
+    }
+    BehaviourTreeInstance.prototype.findStateForNode = function (node) {
         for (var i = 0; i < this.nodeAndState.length; i++) {
             if (this.nodeAndState[i][0] == node)
                 return this.nodeAndState[i][1];
         }
     };
-    this.setState = function (state, node) {
-        if (typeof node == "undefined")
+    ;
+    BehaviourTreeInstance.prototype.setState = function (state, node) {
+        if (!node)
             node = this.currentNode;
         for (var i = 0; i < this.nodeAndState.length; i++) {
             if (this.nodeAndState[i][0] == node) {
@@ -42,16 +47,19 @@ function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
         this.nodeAndState.push([node, state]);
         return state;
     };
+    ;
     //commodity methods
-    this.hasToStart = function () {
+    BehaviourTreeInstance.prototype.hasToStart = function () {
         var state = this.findStateForNode(this.currentNode);
         return state != BehaviourTreeInstance.STATE_EXECUTING && state != BehaviourTreeInstance.STATE_COMPUTE_RESULT;
     };
-    this.hasToComplete = function () {
+    ;
+    BehaviourTreeInstance.prototype.hasToComplete = function () {
         var state = this.findStateForNode(this.currentNode);
         return state == BehaviourTreeInstance.STATE_COMPUTE_RESULT;
     };
-    this.completedAsync = function () {
+    ;
+    BehaviourTreeInstance.prototype.completedAsync = function () {
         if (!this.currentNode)
             return false;
         if (this.currentNode.isConditional())
@@ -59,10 +67,12 @@ function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
         else
             this.setState(BehaviourTreeInstance.STATE_COMPLETED);
     };
-    this.waitUntil = function (callback) {
+    ;
+    BehaviourTreeInstance.prototype.waitUntil = function (callback) {
         this.setState(BehaviourTreeInstance.STATE_EXECUTING);
         callback();
     };
+    ;
     /**
      * This is the function that crawls the behaviour tree instance you pass to it
      * and calls the executors if the the argument is a node of some kind,
@@ -70,7 +80,7 @@ function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
      *
      * The same node may be called to execute twice, once for starting it and on a subsequent tick for completion.
      */
-    this.executeBehaviourTree = function () {
+    BehaviourTreeInstance.prototype.executeBehaviourTree = function () {
         if (this.finished)
             return;
         //find current node to be executed, or a running one, or root to launch, or root completed
@@ -106,11 +116,12 @@ function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
             return result;
         }
     };
+    ;
     // This is a recursive function, does a lot of work in few lines of code.
     // Finds in the behaviour tree instance the currend node that is either to be
     // executed or is executing (async). Also marks all parent nodes completed
     // when necessary.
-    this.findCurrentNode = function (node) {
+    BehaviourTreeInstance.prototype.findCurrentNode = function (node) {
         var state = this.findStateForNode(node);
         if (state == BehaviourTreeInstance.STATE_DISCARDED)
             return null;
@@ -137,65 +148,75 @@ function BehaviourTreeInstance(behaviourTree, actor, numberOfLoops) {
         }
         return null;
     };
-}
-BehaviourTreeInstance.STATE_TO_BE_STARTED = "STATE_TO_BE_STARTED";
-BehaviourTreeInstance.STATE_WAITING = "STATE_WAITING";
-BehaviourTreeInstance.STATE_DISCARDED = "STATE_DISCARDED";
-BehaviourTreeInstance.STATE_EXECUTING = "STATE_EXECUTING";
-BehaviourTreeInstance.STATE_COMPUTE_RESULT = "STATE_COMPUTE_RESULT";
-BehaviourTreeInstance.STATE_COMPLETED = "STATE_COMPLETED";
+    ;
+    BehaviourTreeInstance.STATE_TO_BE_STARTED = "STATE_TO_BE_STARTED";
+    BehaviourTreeInstance.STATE_WAITING = "STATE_WAITING";
+    BehaviourTreeInstance.STATE_DISCARDED = "STATE_DISCARDED";
+    BehaviourTreeInstance.STATE_EXECUTING = "STATE_EXECUTING";
+    BehaviourTreeInstance.STATE_COMPUTE_RESULT = "STATE_COMPUTE_RESULT";
+    BehaviourTreeInstance.STATE_COMPLETED = "STATE_COMPLETED";
+    return BehaviourTreeInstance;
+}());
 // Action model and implementation - BEGIN
 /**
  * This simply creates a wrapper node for any specific action.
  * The wrapper is necessary in order to have a uniform "execute"
  * method to be called by the engine.
  */
-function ActionNode(action) {
-    this.action = action;
-    this.execute = function (behaviourTreeInstanceState) {
+var ActionNode = /** @class */ (function () {
+    function ActionNode(action) {
+        this.action = action;
+    }
+    ActionNode.prototype.execute = function (behaviourTreeInstanceState) {
         return this.action(behaviourTreeInstanceState);
     };
-    this.children = function () {
+    ActionNode.prototype.children = function () {
         return null;
     };
-    this.isConditional = function () {
+    ActionNode.prototype.isConditional = function () {
         return false;
     };
-}
+    return ActionNode;
+}());
 // Action model and implementation - END
 // IfNode model and implementation - BEGIN
 /**
  * This node is required on Selector nodes that are ruled by a logic.
  * You may also omit it and pass directly the method, will work anyway.
  */
-function IfNode(action) {
-    this.action = action;
-    this.execute = function (behaviourTreeInstanceState) {
+var IfNode = /** @class */ (function () {
+    function IfNode(action) {
+        this.action = action;
+    }
+    IfNode.prototype.execute = function (behaviourTreeInstanceState) {
         return this.action(behaviourTreeInstanceState);
     };
-    this.children = function () {
+    IfNode.prototype.children = function () {
         return null;
     };
-    this.isConditional = function () {
-        return true;
+    IfNode.prototype.isConditional = function () {
+        return false;
     };
-}
+    return IfNode;
+}());
 // Action model and implementation - END
 // selector model and implementation - BEGIN
 /**
  * This models the "selector" behaviour on two alternative conditions
  * You use this function in configuring your actor behaviour.
  */
-function SelectorNode(conditionFunction, actionIfTrue, actionIfFalse) {
-    this.conditionFunction = conditionFunction;
-    this.actionIfTrue = actionIfTrue;
-    this.actionIfFalse = actionIfFalse;
+var SelectorNode = /** @class */ (function () {
+    function SelectorNode(conditionFunction, actionIfTrue, actionIfFalse) {
+        this.conditionFunction = conditionFunction;
+        this.actionIfTrue = actionIfTrue;
+        this.actionIfFalse = actionIfFalse;
+    }
     /**
      * This makes a given SelectorNode instance execute.
      * This function is used by the engine executeBehaviourTree
      * when a node of type SelectorNode is met
      */
-    this.execute = function (behaviourTreeInstanceState) {
+    SelectorNode.prototype.execute = function (behaviourTreeInstanceState) {
         var state = behaviourTreeInstanceState.findStateForNode(this);
         if (state == BehaviourTreeInstance.STATE_EXECUTING)
             return;
@@ -219,23 +240,26 @@ function SelectorNode(conditionFunction, actionIfTrue, actionIfFalse) {
             behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, this.actionIfTrue);
         }
     };
-    this.children = function () {
+    SelectorNode.prototype.children = function () {
         return [this.actionIfTrue, this.actionIfFalse];
     };
-    this.isConditional = function () {
+    SelectorNode.prototype.isConditional = function () {
         return true;
     };
-}
+    return SelectorNode;
+}());
 // selector model and implementation - END
 // SelectorArray model and implementation - BEGIN
 /**
  * This is a cool extension of selector that takes a condition function returning the index of the action to be executed.
  * This allows to compact a set of nested conditions in a more readable one.
  */
-function SelectorArrayNode(conditionFunction, actionArray) {
-    this.conditionFunction = conditionFunction;
-    this.actionArray = actionArray;
-    this.execute = function (behaviourTreeInstanceState) {
+var SelectorArrayNode = /** @class */ (function () {
+    function SelectorArrayNode(conditionFunction, actionArray) {
+        this.conditionFunction = conditionFunction;
+        this.actionArray = actionArray;
+    }
+    SelectorArrayNode.prototype.execute = function (behaviourTreeInstanceState) {
         var state = behaviourTreeInstanceState.findStateForNode(this);
         if (state == BehaviourTreeInstance.STATE_EXECUTING)
             return;
@@ -256,59 +280,66 @@ function SelectorArrayNode(conditionFunction, actionArray) {
                 behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, this.actionArray[j]);
         }
     };
-    this.children = function () {
-        return actionArray;
+    SelectorArrayNode.prototype.children = function () {
+        return this.actionArray;
     };
-    this.isConditional = function () {
+    SelectorArrayNode.prototype.isConditional = function () {
         return true;
     };
-}
+    return SelectorArrayNode;
+}());
 // SelectorArray model and implementation - END
 // Sequencer model and implementation - BEGIN
 /**
  * This is a selector that executes all actions in sequence.
  */
-function SequencerNode(actionArray) {
-    this.actionArray = actionArray;
-    this.execute = function (behaviourTreeInstanceState) {
+var SequencerNode = /** @class */ (function () {
+    function SequencerNode(actionArray) {
+        this.actionArray = actionArray;
+    }
+    SequencerNode.prototype.execute = function (behaviourTreeInstanceState) {
         behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_WAITING);
-        behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, actionArray[0]);
+        behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, this.actionArray[0]);
     };
-    this.children = function () {
-        return actionArray;
+    SequencerNode.prototype.children = function () {
+        return this.actionArray;
     };
-    this.isConditional = function () {
+    SequencerNode.prototype.isConditional = function () {
         return false;
     };
-}
+    return SequencerNode;
+}());
 ;
 // Sequencer model and implementation - END
 // SelectorRandom model and implementation - BEGIN
 /**
  * This is a cool extension of selector that executes randomly one of the actions in the array.
  */
-function SelectorRandomNode(actionArray) {
-    this.actionArray = actionArray;
-    this.execute = function (behaviourTreeInstanceState) {
+var SelectorRandomNode = /** @class */ (function () {
+    function SelectorRandomNode(actionArray) {
+        this.actionArray = actionArray;
+    }
+    SelectorRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
         var state = behaviourTreeInstanceState.findStateForNode(this);
         if (state == BehaviourTreeInstance.STATE_EXECUTING)
             return;
-        var randomIndex = Math.floor(Math.random() * actionArray.length);
+        var randomIndex = Math.floor(Math.random() * this.actionArray.length);
         behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_WAITING, this);
-        for (var j = 0; j < actionArray.length; j++) {
+        for (var j = 0; j < this.actionArray.length; j++) {
             if (j == randomIndex)
-                behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, actionArray[j]);
+                behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, this.actionArray[j]);
             else
-                behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, actionArray[j]);
+                behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, this.actionArray[j]);
         }
     };
-    this.children = function () {
-        return actionArray;
+    SelectorRandomNode.prototype.children = function () {
+        return this.actionArray;
     };
-    this.isConditional = function () {
+    SelectorRandomNode.prototype.isConditional = function () {
         return false;
     };
-}
+    return SelectorRandomNode;
+}());
 ;
 // SelectorRandom model and implementation - END
 // SelectorWeightedRandomNode model and implementation - BEGIN
@@ -320,9 +351,11 @@ function SelectorRandomNode(actionArray) {
  * [0.1 Actually work]
  * ]
  */
-function SelectorWeightedRandomNode(weightsActionMap) {
-    this.weightsActionMap = weightsActionMap;
-    this.execute = function (behaviourTreeInstanceState) {
+var SelectorWeightedRandomNode = /** @class */ (function () {
+    function SelectorWeightedRandomNode(weightsActionMap) {
+        this.weightsActionMap = weightsActionMap;
+    }
+    SelectorWeightedRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
         var state = behaviourTreeInstanceState.findStateForNode(this);
         if (state == BehaviourTreeInstance.STATE_EXECUTING)
             return;
@@ -336,17 +369,19 @@ function SelectorWeightedRandomNode(weightsActionMap) {
                 behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, this.weightsActionMap[j][1]);
         }
     };
-    this.children = function () {
+    SelectorWeightedRandomNode.prototype.children = function () {
         var actionArray = [];
         for (var j = 0; j < this.weightsActionMap.length; j++) {
             actionArray.push(this.weightsActionMap[j][1]);
         }
         return actionArray;
     };
-    this.isConditional = function () {
+    SelectorWeightedRandomNode.prototype.isConditional = function () {
         return false;
     };
-}
+    ;
+    return SelectorWeightedRandomNode;
+}());
 ;
 // SelectorWeightedRandomNode model and implementation - END
 // SelectorRandomProbability model and implementation - BEGIN
@@ -362,9 +397,11 @@ function SelectorWeightedRandomNode(weightsActionMap) {
  * ]
  *
  */
-function SelectorRandomProbabilityNode(probabilityActionMap) {
-    this.weightsActionMap = probabilityActionMap;
-    this.execute = function (behaviourTreeInstanceState) {
+var SelectorRandomProbabilityNode = /** @class */ (function () {
+    function SelectorRandomProbabilityNode(probabilityActionMap) {
+        this.weightsActionMap = probabilityActionMap;
+    }
+    SelectorRandomProbabilityNode.prototype.execute = function (behaviourTreeInstanceState) {
         var state = behaviourTreeInstanceState.findStateForNode(this);
         if (state == BehaviourTreeInstance.STATE_EXECUTING)
             return;
@@ -377,39 +414,42 @@ function SelectorRandomProbabilityNode(probabilityActionMap) {
                 behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_DISCARDED, this.weightsActionMap[j][1]);
         }
     };
-    this.children = function () {
+    SelectorRandomProbabilityNode.prototype.children = function () {
         var actionArray = [];
         for (var j = 0; j < this.weightsActionMap.length; j++) {
             actionArray.push(this.weightsActionMap[j][1]);
         }
         return actionArray;
     };
-    this.isConditional = function () {
+    SelectorRandomProbabilityNode.prototype.isConditional = function () {
         return false;
     };
-}
+    return SelectorRandomProbabilityNode;
+}());
 ;
-// SelectorRandomProbability model and implementation - END
-// SequencerRandom model and implementation - BEGIN
 /**
  * This is a cool extension of selector that executes all actions in random sequence.
  */
-function SequencerRandomNode(actionArray) {
-    this.actionArray = actionArray;
-    this.execute = function (behaviourTreeInstanceState) {
-        shuffle(actionArray);
+// SequencerRandom model and implementation - BEGIN
+var SequencerRandomNode = /** @class */ (function () {
+    function SequencerRandomNode(actionArray) {
+        this.children = function () {
+            return this.actionArray;
+        };
+        this.isConditional = function () {
+            return false;
+        };
+        this.actionArray = actionArray;
+    }
+    SequencerRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
+        shuffle(this.actionArray);
         behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_WAITING);
-        behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, actionArray[0]);
+        behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, this.actionArray[0]);
     };
-    this.children = function () {
-        return actionArray;
-    };
-    this.isConditional = function () {
-        return false;
-    };
-}
+    return SequencerRandomNode;
+}());
 ;
-// SequencerRandom model and implementation - END
+// SelectorRandomProbability model and implementation - END
 /**
  * Utility array shuffle function
  * From http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array

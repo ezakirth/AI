@@ -28,7 +28,7 @@ function example() {
 	 *  PolicemanManager is like a static instance that processes actions on a given actor
 	 *  through a behaviour tree instance.
 	 */
-    var PolicemanManager:any = {};
+    var PolicemanManager: any = {};
 
     PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState) {
 
@@ -152,7 +152,7 @@ function example() {
 	 */
 
     var patrollingPoliceBehaviourTreeTwoResults =
-        (new SelectorNode(
+        new SelectorNode(
             PolicemanManager.ifKidInSight,
             new SelectorNode(
                 PolicemanManager.ifChaseGotKid,
@@ -160,30 +160,30 @@ function example() {
                 new SequencerNode([new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)])
             ),
             new ActionNode(PolicemanManager.actionSmoke)
-        ));
+        );
 
     var patrollingPoliceBehaviourSimpleTreeTwoResults =
-        (new SelectorNode(
+        new SelectorNode(
             PolicemanManager.ifKidInSight,
             new ActionNode(PolicemanManager.actionWanderAround),
             new ActionNode(PolicemanManager.actionSmoke)
-        ));
+        );
 
     var patrollingPoliceBehaviourTreeRandomWeightedResults =
-        (new SelectorWeightedRandomNode(
+        new SelectorWeightedRandomNode(
             [
                 [0.2, new ActionNode(PolicemanManager.actionSmoke)],
                 [0.8, new ActionNode(PolicemanManager.actionWanderAround)]
             ]
-        ));
+        );
 
     var patrollingPoliceBehaviourTreeRandomProbabilityResults =
-        (new SelectorRandomProbabilityNode(
+        new SelectorRandomProbabilityNode(
             [
                 [22, new ActionNode(PolicemanManager.actionSmoke)],
                 [100, new ActionNode(PolicemanManager.actionWanderAround)]
             ]
-        ));
+        );
 
     var patrollingPoliceBehaviourTreeMultiResults =
         new SelectorArrayNode(
@@ -212,7 +212,7 @@ function example() {
 	 * Now that we have a couple of behaviour trees, all it takes is to create characters (NPCs)
 	 * and get them acting on a certain behaviour tree instance.
 	 */
-    var policeman1:any = {};
+    var policeman1: any = {};
     policeman1.name = "Bobby";
     policeman1.haveBeenChasing = 0;
 

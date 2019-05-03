@@ -111,16 +111,16 @@ function example() {
     /**
      * Here are several examples of behaviour tree definitions. You can create your own.
      */
-    var patrollingPoliceBehaviourTreeTwoResults = (new SelectorNode(PolicemanManager.ifKidInSight, new SelectorNode(PolicemanManager.ifChaseGotKid, new ActionNode(PolicemanManager.actionBringChildToStation), new SequencerNode([new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)])), new ActionNode(PolicemanManager.actionSmoke)));
-    var patrollingPoliceBehaviourSimpleTreeTwoResults = (new SelectorNode(PolicemanManager.ifKidInSight, new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)));
-    var patrollingPoliceBehaviourTreeRandomWeightedResults = (new SelectorWeightedRandomNode([
+    var patrollingPoliceBehaviourTreeTwoResults = new SelectorNode(PolicemanManager.ifKidInSight, new SelectorNode(PolicemanManager.ifChaseGotKid, new ActionNode(PolicemanManager.actionBringChildToStation), new SequencerNode([new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)])), new ActionNode(PolicemanManager.actionSmoke));
+    var patrollingPoliceBehaviourSimpleTreeTwoResults = new SelectorNode(PolicemanManager.ifKidInSight, new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke));
+    var patrollingPoliceBehaviourTreeRandomWeightedResults = new SelectorWeightedRandomNode([
         [0.2, new ActionNode(PolicemanManager.actionSmoke)],
         [0.8, new ActionNode(PolicemanManager.actionWanderAround)]
-    ]));
-    var patrollingPoliceBehaviourTreeRandomProbabilityResults = (new SelectorRandomProbabilityNode([
+    ]);
+    var patrollingPoliceBehaviourTreeRandomProbabilityResults = new SelectorRandomProbabilityNode([
         [22, new ActionNode(PolicemanManager.actionSmoke)],
         [100, new ActionNode(PolicemanManager.actionWanderAround)]
-    ]));
+    ]);
     var patrollingPoliceBehaviourTreeMultiResults = new SelectorArrayNode(new IfNode(PolicemanManager.ifChaseGotKidCases), [
         new ActionNode(PolicemanManager.actionBringChildToStation),
         new SequencerNode([new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)]),
