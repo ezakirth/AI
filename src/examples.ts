@@ -28,7 +28,7 @@ function example() {
 	 *  PolicemanManager is like a static instance that processes actions on a given actor
 	 *  through a behaviour tree instance.
 	 */
-    var PolicemanManager = {};
+    var PolicemanManager:any = {};
 
     PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState) {
 
@@ -212,7 +212,7 @@ function example() {
 	 * Now that we have a couple of behaviour trees, all it takes is to create characters (NPCs)
 	 * and get them acting on a certain behaviour tree instance.
 	 */
-    var policeman1 = {};
+    var policeman1:any = {};
     policeman1.name = "Bobby";
     policeman1.haveBeenChasing = 0;
 

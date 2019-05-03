@@ -1,0 +1,8 @@
+{
+    "name": "AI",
+    "version": "0.0.1",
+    "description": "Behaviour trees",
+    "dependencies": {
+        "typescript": "^3.4.3"
+    }
+}
