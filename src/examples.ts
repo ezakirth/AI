@@ -13,6 +13,19 @@
  * Utility functions
  */
 
+
+import BehaviourTreeInstance from './simpleBehaviourTreeModel';
+import SelectorNode from './SelectorNode';
+import ActionNode from './ActionNode';
+import SequencerNode from './SequencerNode';
+import SelectorWeightedRandomNode from './SelectorWeightedRandomNode';
+import SelectorRandomProbabilityNode from './SelectorRandomProbabilityNode';
+import SelectorArrayNode from './SelectorArrayNode';
+import IfNode from './IfNode';
+import SelectorRandomNode from './SelectorRandomNode';
+import SequencerRandomNode from './SequencerRandomNode';
+
+
 function writeOnConsole(text) {
     var node = document.createElement("LI");                 // Create a <li> node
     var textnode = document.createTextNode(text);         // Create a text node
@@ -21,22 +34,22 @@ function writeOnConsole(text) {
     //	console.debug(text)
 }
 
-var totalKidsWondering = 20;
+var totalKidsWandering = 20;
+declare var window: any;
 
-function example() {
+window.example = function () {
 	/**
 	 *  PolicemanManager is like a static instance that processes actions on a given actor
 	 *  through a behaviour tree instance.
 	 */
     var PolicemanManager: any = {};
 
-    PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState) {
-
+    PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState: BehaviourTreeInstance) {
         behaviourTreeInstanceState.setState(BehaviourTreeInstance.STATE_COMPLETED);
 
-        if (totalKidsWondering > 0) {
-            writeOnConsole("total kids wandering: " + totalKidsWondering);
-            var b = Math.random() > 0;
+        if (totalKidsWandering > 0) {
+            writeOnConsole("total kids wandering: " + totalKidsWandering);
+            var b = Math.random() > 0.3;
             writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "see kid? " + (b ? "yes" : "no"));
             return b;
         } else {
@@ -46,15 +59,11 @@ function example() {
     };
 
     PolicemanManager.ifChaseGotKid = function (behaviourTreeInstanceState) {
-
         writeOnConsole("ifChaseGotKid 1 ->" + new Date());
-
         writeOnConsole("ifChaseGotKid state: " + behaviourTreeInstanceState.findStateForNode(behaviourTreeInstanceState.currentNode));
 
         if (behaviourTreeInstanceState.hasToStart()) {
-
             writeOnConsole("ifChaseGotKid 2 ->" + new Date());
-
             writeOnConsole("running after kid");
 
             behaviourTreeInstanceState.waitUntil(function () {
@@ -65,22 +74,16 @@ function example() {
             });
 
         } else if (behaviourTreeInstanceState.hasToComplete()) {
-
             writeOnConsole("ifChaseGotKid 3 ->" + new Date());
-
             var b = Math.random() > 0.5;
             writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " got child: " + b);
             return b;
-
         } else {
-
             writeOnConsole("ifChaseGotKid 4 ->" + new Date());
-
             writeOnConsole("running after kid doing nothing");
         }
 
         writeOnConsole("ifChaseGotKid 5 ->" + new Date());
-
     };
 
     PolicemanManager.ifChaseGotKidCases = function (behaviourTreeInstanceState) {
@@ -123,13 +126,13 @@ function example() {
                 }, 3000);
             });
 
-            totalKidsWondering--;
+            totalKidsWandering--;
         }
 
     };
 
     PolicemanManager.actionBringChildHome = function (behaviourTreeInstanceState) {
-        totalKidsWondering--;
+        totalKidsWandering--;
         writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Bring child home");
     };
 
@@ -205,7 +208,13 @@ function example() {
         );
 
     var patrollingPoliceBehaviourTreeRandom =
-        new SequencerRandomNode([new ActionNode(PolicemanManager.actionWanderAround), new ActionNode(PolicemanManager.actionSmoke)]);
+        new SequencerRandomNode(
+            [
+                new ActionNode(PolicemanManager.actionWanderAround),
+                new ActionNode(PolicemanManager.actionSmoke)
+            ]
+        );
+
     // Behaviour Tree Instance END
 
 	/**
@@ -231,8 +240,8 @@ function example() {
 /**
  * This is what makes all your behaviour trees instances run. (implement your own tick)
  */
-function tick(behaviourTreeInstance) {
-    var tick = setInterval(function () {
+function tick(behaviourTreeInstance: BehaviourTreeInstance) {
+    let tick = setInterval(function () {
         behaviourTreeInstance.executeBehaviourTree();
 
         if (behaviourTreeInstance.finished) {

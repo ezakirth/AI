@@ -1,4 +1,4 @@
-export default interface Node {
+export default interface TreeNode {
     action?: Function;
     actionArray?: any;
     weightsActionMap?: any;

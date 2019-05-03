@@ -3,6 +3,19 @@
     "version": "0.0.1",
     "description": "Behaviour trees",
     "dependencies": {
-        "typescript": "^3.4.3"
+        "browserify": "^16.2.3",
+        "jquery": "^3.4.0",
+        "typescript": "^3.4.3",
+        "uglifyify": "^5.0.1",
+        "watchify": "^3.11.1"
+    },
+    "scripts": {
+        "build:server": "tsc && node ./public/app.js",
+        "build:main_dev": "browserify ./public/examples.js > ./public/bundle.js",
+        "build:main_prod": "browserify -g uglifyify ./public/examples.js > ./public/bundle.js",
+        "build:dev": "tsc && npm run build:main_dev",
+        "build:prod": "tsc && npm run build:main_prod",
+        "tsc:live": "tsc -w",
+        "live:main": "watchify ./public/scripts/initMain.js -o ./public/mainBundle.js -v"
     }
 }
