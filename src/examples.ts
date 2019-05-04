@@ -134,9 +134,11 @@ window.example = function () {
         new Leaf(ActionManager.buildSoldiers)
     ]);
 
+    let gatherGold: any = new Leaf(ActionManager.gatherGold);
 
-    let sequencer = new SequencerNode([
-        new Leaf(ActionManager.gatherGold),
+
+
+    let RTS = new SequencerNode([
         new SequencerNode([
             new Leaf(ActionManager.needWorker),
             new Leaf(ActionManager.buildWorker)
@@ -168,8 +170,12 @@ window.example = function () {
     let AI: any = {};
     AI.name = "AI";
 
-    let bti1 = new BehaviourTreeInstance(sequencer, AI, 0);
+    let bti1 = new BehaviourTreeInstance(gatherGold, AI, 0);
     tick(bti1);
+
+
+    let bti2 = new BehaviourTreeInstance(RTS, AI, 0);
+    tick(bti2);
 
 }
 

@@ -101,8 +101,8 @@ window.example = function () {
         new Leaf_1.default(ActionManager.canBuySoldier),
         new Leaf_1.default(ActionManager.buildSoldiers)
     ]);
-    var sequencer = new SequencerNode_1.default([
-        new Leaf_1.default(ActionManager.gatherGold),
+    var gatherGold = new Leaf_1.default(ActionManager.gatherGold);
+    var RTS = new SequencerNode_1.default([
         new SequencerNode_1.default([
             new Leaf_1.default(ActionManager.needWorker),
             new Leaf_1.default(ActionManager.buildWorker)
@@ -127,8 +127,10 @@ window.example = function () {
      */
     var AI = {};
     AI.name = "AI";
-    var bti1 = new simpleBehaviourTreeModel_1.default(sequencer, AI, 0);
+    var bti1 = new simpleBehaviourTreeModel_1.default(gatherGold, AI, 0);
     tick(bti1);
+    var bti2 = new simpleBehaviourTreeModel_1.default(RTS, AI, 0);
+    tick(bti2);
 };
 /**
  * This is what makes all your behaviour trees instances run. (implement your own tick)
