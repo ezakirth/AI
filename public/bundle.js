@@ -278,7 +278,10 @@ window.example = function () {
             new Leaf_1.default(ActionManager.canBuySoldier),
             new Leaf_1.default(ActionManager.buildSoldiers)
         ]),
-        new Leaf_1.default(ActionManager.attack)
+        new SequencerNode_1.default([
+            new DecoratorNode_1.default('Inverter', new Leaf_1.default(ActionManager.needSoldiers)),
+            new Leaf_1.default(ActionManager.attack)
+        ])
     ]);
     var decorator = new SequencerNode_1.default([
         new Leaf_1.default(ActionManager.amIHungry),

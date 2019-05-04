@@ -148,7 +148,10 @@ window.example = function () {
             new Leaf(ActionManager.canBuySoldier),
             new Leaf(ActionManager.buildSoldiers)
         ]),
-        new Leaf(ActionManager.attack)
+        new SequencerNode([
+            new DecoratorNode('Inverter', new Leaf(ActionManager.needSoldiers)),
+            new Leaf(ActionManager.attack)
+        ])
     ]);
 
 
