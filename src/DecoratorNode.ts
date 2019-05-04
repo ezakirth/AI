@@ -1,21 +1,22 @@
 import BehaviourTreeInstance from './simpleBehaviourTreeModel';
-import Composite from './Composite';
 import TreeNode from './TreeNode';
 import { shuffle } from './Utils';
+import Decorator from './Decorator';
 
-/**
- * This is a selector that executes all actions in sequence.
- */
-export default class SequencerNode extends Composite implements TreeNode {
-    constructor(children: TreeNode[]) {
-        super("Sequencer", "Composite", children)
+
+export default class DecoratorNode extends Decorator implements TreeNode {
+    /**
+     * Creates a decorator
+     * @param name Inverter, Succeeder
+     * @param children
+     */
+    constructor(name: string, child: TreeNode) {
+        super(name, "Decorator", child)
     }
 
     execute(behaviourTreeInstance: BehaviourTreeInstance) {
-        //        shuffle(this.children);
         behaviourTreeInstance.setNodeState(this, BehaviourTreeInstance.STATE_WAITING);
         behaviourTreeInstance.setNodeState(this.children[0], BehaviourTreeInstance.STATE_TO_BE_STARTED);
-
         return null;
     }
 }

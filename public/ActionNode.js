@@ -6,20 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * The wrapper is necessary in order to have a uniform "execute"
  * method to be called by the engine.
  */
-var ActionNode = /** @class */ (function () {
-    function ActionNode(action) {
+var Task = /** @class */ (function () {
+    function Task(action) {
         this.action = action;
     }
-    ActionNode.prototype.execute = function (behaviourTreeInstanceState) {
+    Task.prototype.execute = function (behaviourTreeInstanceState) {
         return this.action(behaviourTreeInstanceState);
     };
-    ActionNode.prototype.children = function () {
+    Task.prototype.children = function () {
         return null;
     };
-    ActionNode.prototype.isConditional = function () {
+    Task.prototype.isConditional = function () {
         return false;
     };
-    return ActionNode;
+    return Task;
 }());
-exports.default = ActionNode;
+exports.default = Task;
 // Action model and implementation - END

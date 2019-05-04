@@ -1,403 +1,169 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Action model and implementation - BEGIN
+var Composite = /** @class */ (function () {
+    function Composite(name, type, children) {
+        this.name = name;
+        this.type = type;
+        for (var _i = 0, children_1 = children; _i < children_1.length; _i++) {
+            var child = children_1[_i];
+            child.parent = this;
+        }
+        this.children = children;
+    }
+    Composite.prototype.execute = function (behaviourTreeInstance) { };
+    return Composite;
+}());
+exports.default = Composite;
+
+},{}],2:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Decorator = /** @class */ (function () {
+    function Decorator(name, type, child) {
+        this.name = name;
+        this.type = type;
+        child.parent = this;
+        this.children = [child];
+    }
+    Decorator.prototype.execute = function (behaviourTreeInstance) { };
+    return Decorator;
+}());
+exports.default = Decorator;
+
+},{}],3:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
+var Decorator_1 = require("./Decorator");
+var DecoratorNode = /** @class */ (function (_super) {
+    __extends(DecoratorNode, _super);
+    /**
+     * Creates a decorator
+     * @param name Inverter, Succeeder
+     * @param children
+     */
+    function DecoratorNode(name, child) {
+        return _super.call(this, name, "Decorator", child) || this;
+    }
+    DecoratorNode.prototype.execute = function (behaviourTreeInstance) {
+        behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_WAITING);
+        behaviourTreeInstance.setNodeState(this.children[0], simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED);
+        return null;
+    };
+    return DecoratorNode;
+}(Decorator_1.default));
+exports.default = DecoratorNode;
+
+},{"./Decorator":2,"./simpleBehaviourTreeModel":8}],4:[function(require,module,exports){
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
 /**
  * This simply creates a wrapper node for any specific action.
  * The wrapper is necessary in order to have a uniform "execute"
  * method to be called by the engine.
  */
-var ActionNode = /** @class */ (function () {
-    function ActionNode(action) {
-        this.action = action;
+var Leaf = /** @class */ (function () {
+    function Leaf(task, decorator) {
+        this.name = "Leaf";
+        this.type = "Leaf";
+        this.task = task;
     }
-    ActionNode.prototype.execute = function (behaviourTreeInstanceState) {
-        return this.action(behaviourTreeInstanceState);
+    Leaf.prototype.execute = function (behaviourTreeInstance) {
+        behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_RUNNING);
+        return this.task(behaviourTreeInstance);
     };
-    ActionNode.prototype.children = function () {
-        return null;
-    };
-    ActionNode.prototype.isConditional = function () {
-        return false;
-    };
-    return ActionNode;
+    return Leaf;
 }());
-exports.default = ActionNode;
-// Action model and implementation - END
+exports.default = Leaf;
 
-},{}],2:[function(require,module,exports){
+},{"./simpleBehaviourTreeModel":8}],5:[function(require,module,exports){
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-// IfNode model and implementation - BEGIN
-/**
- * This node is required on Selector nodes that are ruled by a logic.
- * You may also omit it and pass directly the method, will work anyway.
- */
-var IfNode = /** @class */ (function () {
-    function IfNode(action) {
-        this.action = action;
-    }
-    IfNode.prototype.execute = function (behaviourTreeInstanceState) {
-        return this.action(behaviourTreeInstanceState);
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
     };
-    IfNode.prototype.children = function () {
-        return null;
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    IfNode.prototype.isConditional = function () {
-        return false;
-    };
-    return IfNode;
-}());
-exports.default = IfNode;
-// Action model and implementation - END
-
-},{}],3:[function(require,module,exports){
-"use strict";
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var IfNode_1 = require("./IfNode");
-// SelectorArray model and implementation - BEGIN
-/**
- * This is a cool extension of selector that takes a condition function returning the index of the action to be executed.
- * This allows to compact a set of nested conditions in a more readable one.
- */
-var SelectorArrayNode = /** @class */ (function () {
-    function SelectorArrayNode(conditionFunction, actionArray) {
-        this.conditionFunction = conditionFunction;
-        this.actionArray = actionArray;
-    }
-    SelectorArrayNode.prototype.execute = function (behaviourTreeInstanceState) {
-        var state = behaviourTreeInstanceState.findStateForNode(this);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        //			In both cases Sync and Async
-        var resultInt;
-        if (this.conditionFunction instanceof IfNode_1.default) {
-            resultInt = this.conditionFunction.execute(behaviourTreeInstanceState);
-        }
-        else {
-            resultInt = this.conditionFunction(behaviourTreeInstanceState);
-        }
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        for (var j = 0; j < this.actionArray.length; j++) {
-            if (j == resultInt)
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionArray[j]);
-            else
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.actionArray[j]);
-        }
-    };
-    SelectorArrayNode.prototype.children = function () {
-        return this.actionArray;
-    };
-    SelectorArrayNode.prototype.isConditional = function () {
-        return true;
-    };
-    return SelectorArrayNode;
-}());
-exports.default = SelectorArrayNode;
-// SelectorArray model and implementation - END
-
-},{"./IfNode":2,"./simpleBehaviourTreeModel":12}],4:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var IfNode_1 = require("./IfNode");
-// selector model and implementation - BEGIN
-/**
- * This models the "selector" behaviour on two alternative conditions
- * You use this function in configuring your actor behaviour.
- */
-var SelectorNode = /** @class */ (function () {
-    function SelectorNode(conditionFunction, actionIfTrue, actionIfFalse) {
-        this.conditionFunction = conditionFunction;
-        this.actionIfTrue = actionIfTrue;
-        this.actionIfFalse = actionIfFalse;
-    }
-    /**
-     * This makes a given SelectorNode instance execute.
-     * This function is used by the engine executeBehaviourTree
-     * when a node of type SelectorNode is met
-     */
-    SelectorNode.prototype.execute = function (behaviourTreeInstanceState) {
-        var state = behaviourTreeInstanceState.findStateForNode(this);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        //			In both cases Sync and Async
-        var result;
-        if (this.conditionFunction instanceof IfNode_1.default) {
-            result = this.conditionFunction.execute(behaviourTreeInstanceState);
-        }
-        else {
-            result = this.conditionFunction(behaviourTreeInstanceState);
-        }
-        //		console.debug("SelectorNode result", result);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        if (result) {
-            behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionIfTrue);
-            behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.actionIfFalse);
-        }
-        else {
-            behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionIfFalse);
-            behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.actionIfTrue);
-        }
-    };
-    SelectorNode.prototype.children = function () {
-        return [this.actionIfTrue, this.actionIfFalse];
-    };
-    SelectorNode.prototype.isConditional = function () {
-        return true;
-    };
-    return SelectorNode;
-}());
-exports.default = SelectorNode;
-// selector model and implementation - END
-
-},{"./IfNode":2,"./simpleBehaviourTreeModel":12}],5:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-// SelectorRandom model and implementation - BEGIN
-/**
- * This is a cool extension of selector that executes randomly one of the actions in the array.
- */
-var SelectorRandomNode = /** @class */ (function () {
-    function SelectorRandomNode(actionArray) {
-        this.actionArray = actionArray;
-    }
-    SelectorRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
-        var state = behaviourTreeInstanceState.findStateForNode(this);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        var randomIndex = Math.floor(Math.random() * this.actionArray.length);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_WAITING, this);
-        for (var j = 0; j < this.actionArray.length; j++) {
-            if (j == randomIndex)
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionArray[j]);
-            else
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.actionArray[j]);
-        }
-    };
-    SelectorRandomNode.prototype.children = function () {
-        return this.actionArray;
-    };
-    SelectorRandomNode.prototype.isConditional = function () {
-        return false;
-    };
-    return SelectorRandomNode;
-}());
-exports.default = SelectorRandomNode;
-;
-// SelectorRandom model and implementation - END
-
-},{"./simpleBehaviourTreeModel":12}],6:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var Utils_1 = require("./Utils");
-// SelectorRandomProbability model and implementation - BEGIN
-/**
- * This node executes randomly one of the nodes on the base of the probability assigned to the node,
- * but to make it easier to write and modify the probability is assigned as an integer value.
- * The node will normalize the values in a [0,1] interval.
- * Example:
- * [
- * [100 Lazy around]
- * [22 Pretend to work]
- * [1 Actually work]
- * ]
- *
- */
-var SelectorRandomProbabilityNode = /** @class */ (function () {
-    function SelectorRandomProbabilityNode(probabilityActionMap) {
-        this.weightsActionMap = probabilityActionMap;
-    }
-    SelectorRandomProbabilityNode.prototype.execute = function (behaviourTreeInstanceState) {
-        var state = behaviourTreeInstanceState.findStateForNode(this);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        var action = Utils_1.chooseByProbability(this.weightsActionMap);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_WAITING, this);
-        for (var j = 0; j < this.weightsActionMap.length; j++) {
-            if (this.weightsActionMap[j][1] == action)
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, action);
-            else
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.weightsActionMap[j][1]);
-        }
-    };
-    SelectorRandomProbabilityNode.prototype.children = function () {
-        var actionArray = [];
-        for (var j = 0; j < this.weightsActionMap.length; j++) {
-            actionArray.push(this.weightsActionMap[j][1]);
-        }
-        return actionArray;
-    };
-    SelectorRandomProbabilityNode.prototype.isConditional = function () {
-        return false;
-    };
-    return SelectorRandomProbabilityNode;
-}());
-exports.default = SelectorRandomProbabilityNode;
-;
-
-},{"./Utils":10,"./simpleBehaviourTreeModel":12}],7:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var Utils_1 = require("./Utils");
-// SelectorWeightedRandomNode model and implementation - BEGIN
-/**
- * Example:
- * [
- * [0.7 Lazy around]
- * [0.2 Pretend to work]
- * [0.1 Actually work]
- * ]
- */
-var SelectorWeightedRandomNode = /** @class */ (function () {
-    function SelectorWeightedRandomNode(weightsActionMap) {
-        this.weightsActionMap = weightsActionMap;
-    }
-    SelectorWeightedRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
-        var state = behaviourTreeInstanceState.findStateForNode(this);
-        if (state == simpleBehaviourTreeModel_1.default.STATE_EXECUTING)
-            return;
-        var action = Utils_1.chooseByRandom(this.weightsActionMap);
-        //console.debug("randomIndex", this.weightsActionMap, action);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_WAITING, this);
-        for (var j = 0; j < this.weightsActionMap.length; j++) {
-            if (this.weightsActionMap[j][1] == action)
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, action);
-            else
-                behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_DISCARDED, this.weightsActionMap[j][1]);
-        }
-    };
-    SelectorWeightedRandomNode.prototype.children = function () {
-        var actionArray = [];
-        for (var j = 0; j < this.weightsActionMap.length; j++) {
-            actionArray.push(this.weightsActionMap[j][1]);
-        }
-        return actionArray;
-    };
-    SelectorWeightedRandomNode.prototype.isConditional = function () {
-        return false;
-    };
-    ;
-    return SelectorWeightedRandomNode;
-}());
-exports.default = SelectorWeightedRandomNode;
-;
-// SelectorWeightedRandomNode model and implementation - END
-
-},{"./Utils":10,"./simpleBehaviourTreeModel":12}],8:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-// Sequencer model and implementation - BEGIN
+var Composite_1 = require("./Composite");
 /**
  * This is a selector that executes all actions in sequence.
  */
-var SequencerNode = /** @class */ (function () {
-    function SequencerNode(actionArray) {
-        this.actionArray = actionArray;
+var SelectorNode = /** @class */ (function (_super) {
+    __extends(SelectorNode, _super);
+    function SelectorNode(children) {
+        return _super.call(this, "Selector", "Composite", children) || this;
     }
-    SequencerNode.prototype.execute = function (behaviourTreeInstanceState) {
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_WAITING);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionArray[0]);
+    SelectorNode.prototype.execute = function (behaviourTreeInstance) {
+        //        shuffle(this.children);
+        behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_WAITING);
+        behaviourTreeInstance.setNodeState(this.children[0], simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED);
+        return null;
     };
-    SequencerNode.prototype.children = function () {
-        return this.actionArray;
-    };
-    SequencerNode.prototype.isConditional = function () {
-        return false;
-    };
-    return SequencerNode;
-}());
-exports.default = SequencerNode;
-;
-// Sequencer model and implementation - END
+    return SelectorNode;
+}(Composite_1.default));
+exports.default = SelectorNode;
 
-},{"./simpleBehaviourTreeModel":12}],9:[function(require,module,exports){
+},{"./Composite":1,"./simpleBehaviourTreeModel":8}],6:[function(require,module,exports){
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var Utils_1 = require("./Utils");
+var Composite_1 = require("./Composite");
 /**
- * This is a cool extension of selector that executes all actions in random sequence.
+ * This is a selector that executes all actions in sequence.
  */
-// SequencerRandom model and implementation - BEGIN
-var SequencerRandomNode = /** @class */ (function () {
-    function SequencerRandomNode(actionArray) {
-        this.children = function () {
-            return this.actionArray;
-        };
-        this.isConditional = function () {
-            return false;
-        };
-        this.actionArray = actionArray;
+var SequencerNode = /** @class */ (function (_super) {
+    __extends(SequencerNode, _super);
+    function SequencerNode(children) {
+        return _super.call(this, "Sequencer", "Composite", children) || this;
     }
-    SequencerRandomNode.prototype.execute = function (behaviourTreeInstanceState) {
-        Utils_1.shuffle(this.actionArray);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_WAITING);
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED, this.actionArray[0]);
+    SequencerNode.prototype.execute = function (behaviourTreeInstance) {
+        //        shuffle(this.children);
+        behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_WAITING);
+        behaviourTreeInstance.setNodeState(this.children[0], simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED);
+        return null;
     };
-    return SequencerRandomNode;
-}());
-exports.default = SequencerRandomNode;
-;
-// SelectorRandomProbability model and implementation - END
+    return SequencerNode;
+}(Composite_1.default));
+exports.default = SequencerNode;
 
-},{"./Utils":10,"./simpleBehaviourTreeModel":12}],10:[function(require,module,exports){
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Utility array shuffle function
- * From http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
- */
-function shuffle(array) {
-    var currentIndex = array.length;
-    var temporaryValue;
-    var randomIndex;
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
-        // Pick a remaining element...
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex -= 1;
-        // And swap it with the current element.
-        temporaryValue = array[currentIndex];
-        array[currentIndex] = array[randomIndex];
-        array[randomIndex] = temporaryValue;
-    }
-    return array;
-}
-exports.shuffle = shuffle;
-function chooseByRandom(weightsActionMap) {
-    var rnd = Math.random();
-    for (var item in weightsActionMap) {
-        var actionMap = weightsActionMap[item];
-        if (rnd < actionMap[0])
-            return actionMap[1];
-        rnd -= actionMap[0];
-    }
-    throw new Error("The proportions in the collection do not add up to 1.");
-}
-exports.chooseByRandom = chooseByRandom;
-function chooseByProbability(pointActionMap) {
-    var weightsActionMap = [];
-    var totalPoints = 0;
-    for (var point in pointActionMap) {
-        totalPoints += pointActionMap[point][0];
-    }
-    var unit = 1 / totalPoints;
-    for (var point in pointActionMap) {
-        weightsActionMap.push([pointActionMap[point][0] * unit, pointActionMap[point][1]]);
-    }
-    return chooseByRandom(weightsActionMap);
-}
-exports.chooseByProbability = chooseByProbability;
-
-},{}],11:[function(require,module,exports){
+},{"./Composite":1,"./simpleBehaviourTreeModel":8}],7:[function(require,module,exports){
 "use strict";
 /**
  * Created by Pietro Polsinelli && Matteo Bicocchi on 15/05/2015.
@@ -414,154 +180,121 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
 var SelectorNode_1 = require("./SelectorNode");
-var ActionNode_1 = require("./ActionNode");
 var SequencerNode_1 = require("./SequencerNode");
-var SelectorWeightedRandomNode_1 = require("./SelectorWeightedRandomNode");
-var SelectorRandomProbabilityNode_1 = require("./SelectorRandomProbabilityNode");
-var SelectorArrayNode_1 = require("./SelectorArrayNode");
-var IfNode_1 = require("./IfNode");
-var SelectorRandomNode_1 = require("./SelectorRandomNode");
-var SequencerRandomNode_1 = require("./SequencerRandomNode");
-function writeOnConsole(text) {
+var Leaf_1 = require("./Leaf");
+var DecoratorNode_1 = require("./DecoratorNode");
+function writeOnConsole(instance, text) {
     var node = document.createElement("LI"); // Create a <li> node
     var textnode = document.createTextNode(text); // Create a text node
     node.appendChild(textnode); // Append the text to <li>
     document.getElementById("console").appendChild(node); // Append <li> to <ul> with id="myList"
-    //	console.debug(text)
+    // console.log(instance.currentNode.parent.constructor.name)
 }
-var totalKidsWandering = 20;
+window.gold = 0;
+window.workers = 0;
+window.soldiers = 0;
 window.example = function () {
     /**
-     *  PolicemanManager is like a static instance that processes actions on a given actor
+     *  ActionManager is like a static instance that processes actions on a given actor
      *  through a behaviour tree instance.
      */
-    var PolicemanManager = {};
-    PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState) {
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_COMPLETED);
-        if (totalKidsWandering > 0) {
-            writeOnConsole("total kids wandering: " + totalKidsWandering);
-            var b = Math.random() > 0.3;
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "see kid? " + (b ? "yes" : "no"));
-            return b;
+    var ActionManager = {};
+    ActionManager.attack = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "Attacking !");
+        return true;
+    };
+    ActionManager.needWorker = function (behaviourTreeInstance) {
+        if (workers < 5) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need workers !");
+            return true;
         }
         else {
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "No more kids");
             return false;
         }
     };
-    PolicemanManager.ifChaseGotKid = function (behaviourTreeInstanceState) {
-        writeOnConsole("ifChaseGotKid 1 ->" + new Date());
-        writeOnConsole("ifChaseGotKid state: " + behaviourTreeInstanceState.findStateForNode(behaviourTreeInstanceState.currentNode));
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole("ifChaseGotKid 2 ->" + new Date());
-            writeOnConsole("running after kid");
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    writeOnConsole("ifChaseGotKid 2.5 ->" + new Date());
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-        }
-        else if (behaviourTreeInstanceState.hasToComplete()) {
-            writeOnConsole("ifChaseGotKid 3 ->" + new Date());
-            var b = Math.random() > 0.5;
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " got child: " + b);
-            return b;
+    ActionManager.buildWorker = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "hiring worker ...");
+        setTimeout(function () {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - worker ready (" + ++workers + " total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
+    };
+    ActionManager.gatherGold = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "gathering gold ...");
+        setTimeout(function () {
+            var gatheredGold = 5 * workers;
+            gold += gatheredGold;
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - gathered " + gatheredGold + " gold ! (" + gold + "g total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
+    };
+    ActionManager.needSoldiers = function (behaviourTreeInstance) {
+        if (soldiers < 5) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need soldiers !");
+            return true;
         }
         else {
-            writeOnConsole("ifChaseGotKid 4 ->" + new Date());
-            writeOnConsole("running after kid doing nothing");
+            return false;
         }
-        writeOnConsole("ifChaseGotKid 5 ->" + new Date());
     };
-    PolicemanManager.ifChaseGotKidCases = function (behaviourTreeInstanceState) {
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole("running after kid");
-            console.debug("ifChaseGotKid currentNode ", behaviourTreeInstanceState.currentNode);
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-        }
-        else if (behaviourTreeInstanceState.hasToComplete()) {
-            var random = Math.random();
-            var b = random > 0.6 ? 2 : (random > 0.3 ? 1 : 0);
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " got child: " + b);
-            return b;
+    ActionManager.canBuySoldier = function (behaviourTreeInstance) {
+        if (gold >= 15) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we can buy a soldier");
+            return true;
         }
         else {
-            writeOnConsole("running after kid doing nothing");
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need more gold to buy a soldier");
+            return false;
         }
     };
-    PolicemanManager.actionBringChildToStation = function (behaviourTreeInstanceState) {
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Bring child to station");
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " child in station");
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-            totalKidsWandering--;
-        }
-    };
-    PolicemanManager.actionBringChildHome = function (behaviourTreeInstanceState) {
-        totalKidsWandering--;
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Bring child home");
-    };
-    PolicemanManager.actionSmoke = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Smoke");
-    };
-    PolicemanManager.actionImHurt = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "  I'm hurt!");
-    };
-    PolicemanManager.actionWanderAround = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Wander around");
+    ActionManager.buildSoldiers = function (behaviourTreeInstance) {
+        gold -= 15;
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "hiring soldier ...");
+        setTimeout(function () {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - soldier ready (" + ++soldiers + " total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
     };
     // Behaviour Tree Instance BEGIN
     /**
      * Here are several examples of behaviour tree definitions. You can create your own.
      */
-    var patrollingPoliceBehaviourTreeTwoResults = new SelectorNode_1.default(PolicemanManager.ifKidInSight, new SelectorNode_1.default(PolicemanManager.ifChaseGotKid, new ActionNode_1.default(PolicemanManager.actionBringChildToStation), new SequencerNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)])), new ActionNode_1.default(PolicemanManager.actionSmoke));
-    var patrollingPoliceBehaviourSimpleTreeTwoResults = new SelectorNode_1.default(PolicemanManager.ifKidInSight, new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke));
-    var patrollingPoliceBehaviourTreeRandomWeightedResults = new SelectorWeightedRandomNode_1.default([
-        [0.2, new ActionNode_1.default(PolicemanManager.actionSmoke)],
-        [0.8, new ActionNode_1.default(PolicemanManager.actionWanderAround)]
+    var selector = new SelectorNode_1.default([
+        new Leaf_1.default(ActionManager.needSoldiers),
+        new Leaf_1.default(ActionManager.canBuySoldier),
+        new Leaf_1.default(ActionManager.buildSoldiers)
     ]);
-    var patrollingPoliceBehaviourTreeRandomProbabilityResults = new SelectorRandomProbabilityNode_1.default([
-        [22, new ActionNode_1.default(PolicemanManager.actionSmoke)],
-        [100, new ActionNode_1.default(PolicemanManager.actionWanderAround)]
+    var sequencer = new SequencerNode_1.default([
+        new Leaf_1.default(ActionManager.gatherGold),
+        new SequencerNode_1.default([
+            new Leaf_1.default(ActionManager.needWorker),
+            new Leaf_1.default(ActionManager.buildWorker)
+        ]),
+        new SequencerNode_1.default([
+            new Leaf_1.default(ActionManager.needSoldiers),
+            new Leaf_1.default(ActionManager.canBuySoldier),
+            new Leaf_1.default(ActionManager.buildSoldiers)
+        ]),
+        new Leaf_1.default(ActionManager.attack)
     ]);
-    var patrollingPoliceBehaviourTreeMultiResults = new SelectorArrayNode_1.default(new IfNode_1.default(PolicemanManager.ifChaseGotKidCases), [
-        new ActionNode_1.default(PolicemanManager.actionBringChildToStation),
-        new SequencerNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)]),
-        new ActionNode_1.default(PolicemanManager.actionImHurt)
-    ]);
-    var patrollingPoliceBehaviourTreeRandomResults = new SelectorRandomNode_1.default([
-        new ActionNode_1.default(PolicemanManager.actionBringChildToStation),
-        new SequencerRandomNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)]),
-        new ActionNode_1.default(PolicemanManager.actionImHurt)
-    ]);
-    var patrollingPoliceBehaviourTreeRandom = new SequencerRandomNode_1.default([
-        new ActionNode_1.default(PolicemanManager.actionWanderAround),
-        new ActionNode_1.default(PolicemanManager.actionSmoke)
+    var decorator = new SequencerNode_1.default([
+        new Leaf_1.default(ActionManager.amIHungry),
+        new Leaf_1.default(ActionManager.doIHaveFood),
+        new DecoratorNode_1.default('Inverter', new Leaf_1.default(ActionManager.enemiesAround)),
+        new Leaf_1.default(ActionManager.EatFood)
     ]);
     // Behaviour Tree Instance END
     /**
      * Now that we have a couple of behaviour trees, all it takes is to create characters (NPCs)
      * and get them acting on a certain behaviour tree instance.
      */
-    var policeman1 = {};
-    policeman1.name = "Bobby";
-    policeman1.haveBeenChasing = 0;
-    var bti1 = new simpleBehaviourTreeModel_1.default(patrollingPoliceBehaviourTreeMultiResults, policeman1, 1);
+    var AI = {};
+    AI.name = "AI";
+    var bti1 = new simpleBehaviourTreeModel_1.default(sequencer, AI, 0);
     tick(bti1);
-    //you can have several instances of course
-    /*var policeman2 = {};
-     policeman2.name = "Jimmy";
-     var bti2 = new BehaviourTreeInstance(patrollingPoliceBehaviourTreeTwoResults,policeman2,1);
-     tick(bti2);*/
 };
 /**
  * This is what makes all your behaviour trees instances run. (implement your own tick)
@@ -570,14 +303,15 @@ function tick(behaviourTreeInstance) {
     var tick = setInterval(function () {
         behaviourTreeInstance.executeBehaviourTree();
         if (behaviourTreeInstance.finished) {
-            writeOnConsole(behaviourTreeInstance.actor.name + " has finished.");
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + " has finished.");
             clearTimeout(tick);
         }
     }, 100);
 }
 
-},{"./ActionNode":1,"./IfNode":2,"./SelectorArrayNode":3,"./SelectorNode":4,"./SelectorRandomNode":5,"./SelectorRandomProbabilityNode":6,"./SelectorWeightedRandomNode":7,"./SequencerNode":8,"./SequencerRandomNode":9,"./simpleBehaviourTreeModel":12}],12:[function(require,module,exports){
+},{"./DecoratorNode":3,"./Leaf":4,"./SelectorNode":5,"./SequencerNode":6,"./simpleBehaviourTreeModel":8}],8:[function(require,module,exports){
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Created by Pietro Polsinelli && Matteo Bicocchi on 15/05/2015.
  *
@@ -587,7 +321,6 @@ function tick(behaviourTreeInstance) {
  * Follow us on Twitter @ppolsinelli @pupunzi where we post about game design, game development, Unity3d 2D, HTML5, CSS3, jquery, applied games.
  *
  */
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
  *
  * @param behaviourTree
@@ -601,16 +334,21 @@ var BehaviourTreeInstance = /** @class */ (function () {
             numberOfLoops = 1;
         this.behaviourTree = behaviourTree;
         this.actor = actor;
-        this.nodeAndState = [];
+        this.activeNodes = [];
         this.currentNode = null;
         this.numberOfLoops = numberOfLoops;
         this.numberOfRuns = 0;
         this.finished = false;
     }
-    BehaviourTreeInstance.prototype.findStateForNode = function (node) {
-        for (var i = 0; i < this.nodeAndState.length; i++) {
-            if (this.nodeAndState[i][0] == node)
-                return this.nodeAndState[i][1];
+    /**
+     * Returns the state of a given node
+     * @param node
+     */
+    BehaviourTreeInstance.prototype.getNodeState = function (node) {
+        for (var _i = 0, _a = this.activeNodes; _i < _a.length; _i++) {
+            var activeNode = _a[_i];
+            if (activeNode.node == node)
+                return activeNode.state;
         }
     };
     ;
@@ -619,42 +357,20 @@ var BehaviourTreeInstance = /** @class */ (function () {
      * @param state
      * @param node
      */
-    BehaviourTreeInstance.prototype.setState = function (state, node) {
-        if (!node)
-            node = this.currentNode;
-        for (var i = 0; i < this.nodeAndState.length; i++) {
-            if (this.nodeAndState[i][0] == node) {
-                this.nodeAndState.splice(i, 1);
+    BehaviourTreeInstance.prototype.setNodeState = function (node, state) {
+        var active = false;
+        for (var _i = 0, _a = this.activeNodes; _i < _a.length; _i++) {
+            var activeNode = _a[_i];
+            if (activeNode.node == node) {
+                activeNode.state = state;
+                active = true;
                 break;
             }
         }
-        this.nodeAndState.push([node, state]);
+        if (!active) {
+            this.activeNodes.push({ node: node, state: state });
+        }
         return state;
-    };
-    ;
-    //commodity methods
-    BehaviourTreeInstance.prototype.hasToStart = function () {
-        var state = this.findStateForNode(this.currentNode);
-        return state != BehaviourTreeInstance.STATE_EXECUTING && state != BehaviourTreeInstance.STATE_COMPUTE_RESULT;
-    };
-    ;
-    BehaviourTreeInstance.prototype.hasToComplete = function () {
-        var state = this.findStateForNode(this.currentNode);
-        return state == BehaviourTreeInstance.STATE_COMPUTE_RESULT;
-    };
-    ;
-    BehaviourTreeInstance.prototype.completedAsync = function () {
-        if (!this.currentNode)
-            return false;
-        if (this.currentNode.isConditional())
-            this.setState(BehaviourTreeInstance.STATE_COMPUTE_RESULT);
-        else
-            this.setState(BehaviourTreeInstance.STATE_COMPLETED);
-    };
-    ;
-    BehaviourTreeInstance.prototype.waitUntil = function (callback) {
-        this.setState(BehaviourTreeInstance.STATE_EXECUTING);
-        callback();
     };
     ;
     /**
@@ -669,78 +385,98 @@ var BehaviourTreeInstance = /** @class */ (function () {
             return;
         //find current node to be executed, or a running one, or root to launch, or root completed
         this.currentNode = this.findCurrentNode(this.behaviourTree);
+        // if the tree has been fully traversed
         if (this.currentNode == null) {
             this.numberOfRuns++;
+            // reset all and restart
             if (this.numberOfLoops == 0 || this.numberOfRuns < this.numberOfLoops) {
-                this.nodeAndState = [];
+                this.activeNodes = [];
                 this.currentNode = this.findCurrentNode(this.behaviourTree);
             }
+            // or stop here
             else {
                 this.finished = true;
                 return;
             }
         }
-        var state = this.findStateForNode(this.currentNode);
-        if (state == null || state == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
-            //first call to execute
-            //if the node is async, this will be the first of a two part call
-            var result = this.currentNode.execute(this);
-            var afterState = this.findStateForNode(this.currentNode);
-            //if the node is async, it will set the state to STATE_EXECUTING
-            if (afterState == null || afterState == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
-                this.setState(BehaviourTreeInstance.STATE_COMPLETED);
-            }
-            return result;
-        }
-        //this is the case we have to call the second execute
-        //on the async node, which will bring it compute the final result and end
-        if (state == BehaviourTreeInstance.STATE_COMPUTE_RESULT) {
-            var result = this.currentNode.execute(this);
-            this.setState(BehaviourTreeInstance.STATE_COMPLETED);
-            return result;
+        // Run the current node and mark it as success or failure
+        if (this.getNodeState(this.currentNode) == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
+            var nodeExecutionResult = this.currentNode.execute(this);
+            this.updateTaskState(nodeExecutionResult);
         }
     };
-    ;
-    // This is a recursive function, does a lot of work in few lines of code.
-    // Finds in the behaviour tree instance the currend node that is either to be
-    // executed or is executing (async). Also marks all parent nodes completed
-    // when necessary.
-    BehaviourTreeInstance.prototype.findCurrentNode = function (node) {
-        var state = this.findStateForNode(node);
-        if (state == BehaviourTreeInstance.STATE_DISCARDED)
-            return null;
-        if (state == null) {
-            state = this.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, node);
+    /**
+     * updates the state of a leaf (task) node. If result is null, then it means we don't have a result yet (async)
+     * @param nodeExecutionResult
+     */
+    BehaviourTreeInstance.prototype.updateTaskState = function (nodeExecutionResult) {
+        if (nodeExecutionResult !== null) {
+            var parentNode = this.currentNode.parent;
+            if (parentNode && parentNode.type == "Decorator") {
+                // if it's an inverter node, invert the result
+                if (parentNode.name == "Inverter")
+                    nodeExecutionResult = !nodeExecutionResult;
+                // if it's a succeeder node, set result to true
+                if (parentNode.name == "Succeeder")
+                    nodeExecutionResult = true;
+                this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+                // make the parent of the leaf the parent of the decorator instead
+                parentNode = parentNode.parent;
+            }
+            if (nodeExecutionResult === false) {
+                this.setNodeState(this.currentNode, BehaviourTreeInstance.STATE_FAILURE);
+                // if it's a sequencer node, stop as soon as a child fails
+                if (parentNode && parentNode.name == "Sequencer")
+                    this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+            }
+            else {
+                this.setNodeState(this.currentNode, BehaviourTreeInstance.STATE_SUCCESS);
+                // if it's a selector node, stop it as soon as a child succeeds
+                if (parentNode && parentNode.name == "Selector")
+                    this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+            }
         }
-        if (state == BehaviourTreeInstance.STATE_EXECUTING ||
-            state == BehaviourTreeInstance.STATE_COMPUTE_RESULT ||
+    };
+    /**
+     * This is a recursive function, does a lot of work in few lines of code.
+     * Finds in the behaviour tree instance the currend node that is either to be
+     * executed or is executing (async). Also marks all parent nodes completed
+     * when necessary.
+     * @param node
+     */
+    BehaviourTreeInstance.prototype.findCurrentNode = function (node) {
+        // if node is not active, get it ready
+        var state = this.getNodeState(node) || this.setNodeState(node, BehaviourTreeInstance.STATE_TO_BE_STARTED);
+        if (state == BehaviourTreeInstance.STATE_DONE)
+            return null;
+        if (state == BehaviourTreeInstance.STATE_RUNNING ||
             state == BehaviourTreeInstance.STATE_TO_BE_STARTED)
             return node;
-        var children = node.children();
-        if (children == null) {
-            return null;
-        }
-        else {
-            for (var i = 0; i < children.length; i++) {
-                var childNode = this.findCurrentNode(children[i]);
-                if (childNode)
-                    return childNode;
+        if (node.children) {
+            for (var _i = 0, _a = node.children; _i < _a.length; _i++) {
+                var child = _a[_i];
+                var currentNode = this.findCurrentNode(child);
+                if (currentNode)
+                    return currentNode;
             }
-            if (state == BehaviourTreeInstance.STATE_WAITING) {
-                this.setState(BehaviourTreeInstance.STATE_COMPLETED, node);
-            }
+            // all children are traversed, mark node as done
+            this.setNodeState(node, BehaviourTreeInstance.STATE_DONE);
         }
         return null;
     };
     ;
     BehaviourTreeInstance.STATE_TO_BE_STARTED = "STATE_TO_BE_STARTED";
-    BehaviourTreeInstance.STATE_WAITING = "STATE_WAITING";
-    BehaviourTreeInstance.STATE_DISCARDED = "STATE_DISCARDED";
-    BehaviourTreeInstance.STATE_EXECUTING = "STATE_EXECUTING";
-    BehaviourTreeInstance.STATE_COMPUTE_RESULT = "STATE_COMPUTE_RESULT";
-    BehaviourTreeInstance.STATE_COMPLETED = "STATE_COMPLETED";
+    BehaviourTreeInstance.STATE_RUNNING = "STATE_RUNNING"; // task in progress
+    BehaviourTreeInstance.STATE_FAILURE = "STATE_FAILURE";
+    BehaviourTreeInstance.STATE_SUCCESS = "STATE_SUCCESS";
+    BehaviourTreeInstance.STATE_WAITING = "STATE_WAITING"; // composite node waiting on its children
+    BehaviourTreeInstance.STATE_DONE = "STATE_DONE"; // composite node waiting on its children
+    BehaviourTreeInstance.DECORATOR = {
+        INVERTER: "DECORATOR_INVERTER",
+        SUCCEEDER: "DECORATOR_SUCCEEDER"
+    };
     return BehaviourTreeInstance;
 }());
 exports.default = BehaviourTreeInstance;
 
-},{}]},{},[11]);
+},{}]},{},[7]);

@@ -14,21 +14,22 @@ var __extends = (this && this.__extends) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
-var Composite_1 = require("./Composite");
-/**
- * This is a selector that executes all actions in sequence.
- */
-var SelectorNode = /** @class */ (function (_super) {
-    __extends(SelectorNode, _super);
-    function SelectorNode(children) {
-        return _super.call(this, "Selector", "Composite", children) || this;
+var Decorator_1 = require("./Decorator");
+var DecoratorNode = /** @class */ (function (_super) {
+    __extends(DecoratorNode, _super);
+    /**
+     * Creates a decorator
+     * @param name Inverter, Succeeder
+     * @param children
+     */
+    function DecoratorNode(name, child) {
+        return _super.call(this, name, "Decorator", child) || this;
     }
-    SelectorNode.prototype.execute = function (behaviourTreeInstance) {
-        //        shuffle(this.children);
+    DecoratorNode.prototype.execute = function (behaviourTreeInstance) {
         behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_WAITING);
         behaviourTreeInstance.setNodeState(this.children[0], simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED);
         return null;
     };
-    return SelectorNode;
-}(Composite_1.default));
-exports.default = SelectorNode;
+    return DecoratorNode;
+}(Decorator_1.default));
+exports.default = DecoratorNode;

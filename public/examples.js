@@ -14,154 +14,121 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 var simpleBehaviourTreeModel_1 = require("./simpleBehaviourTreeModel");
 var SelectorNode_1 = require("./SelectorNode");
-var ActionNode_1 = require("./ActionNode");
 var SequencerNode_1 = require("./SequencerNode");
-var SelectorWeightedRandomNode_1 = require("./SelectorWeightedRandomNode");
-var SelectorRandomProbabilityNode_1 = require("./SelectorRandomProbabilityNode");
-var SelectorArrayNode_1 = require("./SelectorArrayNode");
-var IfNode_1 = require("./IfNode");
-var SelectorRandomNode_1 = require("./SelectorRandomNode");
-var SequencerRandomNode_1 = require("./SequencerRandomNode");
-function writeOnConsole(text) {
+var Leaf_1 = require("./Leaf");
+var DecoratorNode_1 = require("./DecoratorNode");
+function writeOnConsole(instance, text) {
     var node = document.createElement("LI"); // Create a <li> node
     var textnode = document.createTextNode(text); // Create a text node
     node.appendChild(textnode); // Append the text to <li>
     document.getElementById("console").appendChild(node); // Append <li> to <ul> with id="myList"
-    //	console.debug(text)
+    // console.log(instance.currentNode.parent.constructor.name)
 }
-var totalKidsWandering = 20;
+window.gold = 0;
+window.workers = 0;
+window.soldiers = 0;
 window.example = function () {
     /**
-     *  PolicemanManager is like a static instance that processes actions on a given actor
+     *  ActionManager is like a static instance that processes actions on a given actor
      *  through a behaviour tree instance.
      */
-    var PolicemanManager = {};
-    PolicemanManager.ifKidInSight = function (behaviourTreeInstanceState) {
-        behaviourTreeInstanceState.setState(simpleBehaviourTreeModel_1.default.STATE_COMPLETED);
-        if (totalKidsWandering > 0) {
-            writeOnConsole("total kids wandering: " + totalKidsWandering);
-            var b = Math.random() > 0.3;
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "see kid? " + (b ? "yes" : "no"));
-            return b;
+    var ActionManager = {};
+    ActionManager.attack = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "Attacking !");
+        return true;
+    };
+    ActionManager.needWorker = function (behaviourTreeInstance) {
+        if (workers < 5) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need workers !");
+            return true;
         }
         else {
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "No more kids");
             return false;
         }
     };
-    PolicemanManager.ifChaseGotKid = function (behaviourTreeInstanceState) {
-        writeOnConsole("ifChaseGotKid 1 ->" + new Date());
-        writeOnConsole("ifChaseGotKid state: " + behaviourTreeInstanceState.findStateForNode(behaviourTreeInstanceState.currentNode));
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole("ifChaseGotKid 2 ->" + new Date());
-            writeOnConsole("running after kid");
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    writeOnConsole("ifChaseGotKid 2.5 ->" + new Date());
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-        }
-        else if (behaviourTreeInstanceState.hasToComplete()) {
-            writeOnConsole("ifChaseGotKid 3 ->" + new Date());
-            var b = Math.random() > 0.5;
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " got child: " + b);
-            return b;
+    ActionManager.buildWorker = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "hiring worker ...");
+        setTimeout(function () {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - worker ready (" + ++workers + " total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
+    };
+    ActionManager.gatherGold = function (behaviourTreeInstance) {
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "gathering gold ...");
+        setTimeout(function () {
+            var gatheredGold = 5 * workers;
+            gold += gatheredGold;
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - gathered " + gatheredGold + " gold ! (" + gold + "g total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
+    };
+    ActionManager.needSoldiers = function (behaviourTreeInstance) {
+        if (soldiers < 5) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need soldiers !");
+            return true;
         }
         else {
-            writeOnConsole("ifChaseGotKid 4 ->" + new Date());
-            writeOnConsole("running after kid doing nothing");
+            return false;
         }
-        writeOnConsole("ifChaseGotKid 5 ->" + new Date());
     };
-    PolicemanManager.ifChaseGotKidCases = function (behaviourTreeInstanceState) {
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole("running after kid");
-            console.debug("ifChaseGotKid currentNode ", behaviourTreeInstanceState.currentNode);
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-        }
-        else if (behaviourTreeInstanceState.hasToComplete()) {
-            var random = Math.random();
-            var b = random > 0.6 ? 2 : (random > 0.3 ? 1 : 0);
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " got child: " + b);
-            return b;
+    ActionManager.canBuySoldier = function (behaviourTreeInstance) {
+        if (gold >= 15) {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we can buy a soldier");
+            return true;
         }
         else {
-            writeOnConsole("running after kid doing nothing");
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "we need more gold to buy a soldier");
+            return false;
         }
     };
-    PolicemanManager.actionBringChildToStation = function (behaviourTreeInstanceState) {
-        if (behaviourTreeInstanceState.hasToStart()) {
-            writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Bring child to station");
-            behaviourTreeInstanceState.waitUntil(function () {
-                setTimeout(function () {
-                    writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + " child in station");
-                    behaviourTreeInstanceState.completedAsync();
-                }, 3000);
-            });
-            totalKidsWandering--;
-        }
-    };
-    PolicemanManager.actionBringChildHome = function (behaviourTreeInstanceState) {
-        totalKidsWandering--;
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Bring child home");
-    };
-    PolicemanManager.actionSmoke = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Smoke");
-    };
-    PolicemanManager.actionImHurt = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "  I'm hurt!");
-    };
-    PolicemanManager.actionWanderAround = function (behaviourTreeInstanceState) {
-        writeOnConsole(behaviourTreeInstanceState.actor.name + ": " + "Wander around");
+    ActionManager.buildSoldiers = function (behaviourTreeInstance) {
+        gold -= 15;
+        writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + "hiring soldier ...");
+        setTimeout(function () {
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + ": " + " - soldier ready (" + ++soldiers + " total)");
+            behaviourTreeInstance.updateTaskState(true);
+        }, 1000);
+        return null;
     };
     // Behaviour Tree Instance BEGIN
     /**
      * Here are several examples of behaviour tree definitions. You can create your own.
      */
-    var patrollingPoliceBehaviourTreeTwoResults = new SelectorNode_1.default(PolicemanManager.ifKidInSight, new SelectorNode_1.default(PolicemanManager.ifChaseGotKid, new ActionNode_1.default(PolicemanManager.actionBringChildToStation), new SequencerNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)])), new ActionNode_1.default(PolicemanManager.actionSmoke));
-    var patrollingPoliceBehaviourSimpleTreeTwoResults = new SelectorNode_1.default(PolicemanManager.ifKidInSight, new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke));
-    var patrollingPoliceBehaviourTreeRandomWeightedResults = new SelectorWeightedRandomNode_1.default([
-        [0.2, new ActionNode_1.default(PolicemanManager.actionSmoke)],
-        [0.8, new ActionNode_1.default(PolicemanManager.actionWanderAround)]
+    var selector = new SelectorNode_1.default([
+        new Leaf_1.default(ActionManager.needSoldiers),
+        new Leaf_1.default(ActionManager.canBuySoldier),
+        new Leaf_1.default(ActionManager.buildSoldiers)
     ]);
-    var patrollingPoliceBehaviourTreeRandomProbabilityResults = new SelectorRandomProbabilityNode_1.default([
-        [22, new ActionNode_1.default(PolicemanManager.actionSmoke)],
-        [100, new ActionNode_1.default(PolicemanManager.actionWanderAround)]
+    var sequencer = new SequencerNode_1.default([
+        new Leaf_1.default(ActionManager.gatherGold),
+        new SequencerNode_1.default([
+            new Leaf_1.default(ActionManager.needWorker),
+            new Leaf_1.default(ActionManager.buildWorker)
+        ]),
+        new SequencerNode_1.default([
+            new Leaf_1.default(ActionManager.needSoldiers),
+            new Leaf_1.default(ActionManager.canBuySoldier),
+            new Leaf_1.default(ActionManager.buildSoldiers)
+        ]),
+        new Leaf_1.default(ActionManager.attack)
     ]);
-    var patrollingPoliceBehaviourTreeMultiResults = new SelectorArrayNode_1.default(new IfNode_1.default(PolicemanManager.ifChaseGotKidCases), [
-        new ActionNode_1.default(PolicemanManager.actionBringChildToStation),
-        new SequencerNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)]),
-        new ActionNode_1.default(PolicemanManager.actionImHurt)
-    ]);
-    var patrollingPoliceBehaviourTreeRandomResults = new SelectorRandomNode_1.default([
-        new ActionNode_1.default(PolicemanManager.actionBringChildToStation),
-        new SequencerRandomNode_1.default([new ActionNode_1.default(PolicemanManager.actionWanderAround), new ActionNode_1.default(PolicemanManager.actionSmoke)]),
-        new ActionNode_1.default(PolicemanManager.actionImHurt)
-    ]);
-    var patrollingPoliceBehaviourTreeRandom = new SequencerRandomNode_1.default([
-        new ActionNode_1.default(PolicemanManager.actionWanderAround),
-        new ActionNode_1.default(PolicemanManager.actionSmoke)
+    var decorator = new SequencerNode_1.default([
+        new Leaf_1.default(ActionManager.amIHungry),
+        new Leaf_1.default(ActionManager.doIHaveFood),
+        new DecoratorNode_1.default('Inverter', new Leaf_1.default(ActionManager.enemiesAround)),
+        new Leaf_1.default(ActionManager.EatFood)
     ]);
     // Behaviour Tree Instance END
     /**
      * Now that we have a couple of behaviour trees, all it takes is to create characters (NPCs)
      * and get them acting on a certain behaviour tree instance.
      */
-    var policeman1 = {};
-    policeman1.name = "Bobby";
-    policeman1.haveBeenChasing = 0;
-    var bti1 = new simpleBehaviourTreeModel_1.default(patrollingPoliceBehaviourTreeMultiResults, policeman1, 1);
+    var AI = {};
+    AI.name = "AI";
+    var bti1 = new simpleBehaviourTreeModel_1.default(sequencer, AI, 0);
     tick(bti1);
-    //you can have several instances of course
-    /*var policeman2 = {};
-     policeman2.name = "Jimmy";
-     var bti2 = new BehaviourTreeInstance(patrollingPoliceBehaviourTreeTwoResults,policeman2,1);
-     tick(bti2);*/
 };
 /**
  * This is what makes all your behaviour trees instances run. (implement your own tick)
@@ -170,7 +137,7 @@ function tick(behaviourTreeInstance) {
     var tick = setInterval(function () {
         behaviourTreeInstance.executeBehaviourTree();
         if (behaviourTreeInstance.finished) {
-            writeOnConsole(behaviourTreeInstance.actor.name + " has finished.");
+            writeOnConsole(behaviourTreeInstance, behaviourTreeInstance.actor.name + " has finished.");
             clearTimeout(tick);
         }
     }, 100);

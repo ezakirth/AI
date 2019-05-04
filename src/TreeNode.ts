@@ -1,11 +1,7 @@
 export default interface TreeNode {
-    action?: Function;
-    actionArray?: any;
-    weightsActionMap?: any;
-
+    name: string;
+    type: string;
+    children?: TreeNode[];
+    parent?: TreeNode;
     execute: Function;
-
-    children: Function;
-
-    isConditional: Function;
 }

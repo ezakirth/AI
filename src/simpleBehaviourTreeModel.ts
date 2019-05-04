@@ -1,3 +1,8 @@
+import Composite from "./Composite";
+import TreeNode from "./TreeNode";
+import SequencerNode from "./SequencerNode";
+import SelectorNode from "./SelectorNode";
+
 /**
  * Created by Pietro Polsinelli && Matteo Bicocchi on 15/05/2015.
  *
@@ -19,27 +24,32 @@
 
 export default class BehaviourTreeInstance {
     static STATE_TO_BE_STARTED = "STATE_TO_BE_STARTED";
-    static STATE_WAITING = "STATE_WAITING";
-    static STATE_DISCARDED = "STATE_DISCARDED";
-    static STATE_EXECUTING = "STATE_EXECUTING";
-    static STATE_COMPUTE_RESULT = "STATE_COMPUTE_RESULT";
-    static STATE_COMPLETED = "STATE_COMPLETED";
+    static STATE_RUNNING = "STATE_RUNNING"; // task in progress
+    static STATE_FAILURE = "STATE_FAILURE";
+    static STATE_SUCCESS = "STATE_SUCCESS";
+    static STATE_WAITING = "STATE_WAITING"; // composite node waiting on its children
+    static STATE_DONE = "STATE_DONE"; // composite node waiting on its children
 
-    behaviourTree: any;
+    static DECORATOR = {
+        INVERTER: "DECORATOR_INVERTER",
+        SUCCEEDER: "DECORATOR_SUCCEEDER"
+    }
+
+    behaviourTree: Composite;
     actor: any;
-    nodeAndState: [any, string][];
-    currentNode: any;
-    numberOfLoops: any;
-    numberOfRuns: any;
+    activeNodes: any[];
+    currentNode: TreeNode;
+    numberOfLoops: number;
+    numberOfRuns: number;
     finished: boolean;
-    constructor(behaviourTree, actor, numberOfLoops?: number) {
 
+    constructor(behaviourTree: Composite, actor: any, numberOfLoops?: number) {
         if (typeof numberOfLoops == "undefined")
             numberOfLoops = 1;
 
         this.behaviourTree = behaviourTree;
         this.actor = actor;
-        this.nodeAndState = [];
+        this.activeNodes = [];
         this.currentNode = null;
         this.numberOfLoops = numberOfLoops;
 
@@ -47,61 +57,40 @@ export default class BehaviourTreeInstance {
         this.finished = false;
     }
 
-    findStateForNode(node) {
-
-        for (var i = 0; i < this.nodeAndState.length; i++) {
-            if (this.nodeAndState[i][0] == node)
-                return this.nodeAndState[i][1];
+    /**
+     * Returns the state of a given node
+     * @param node
+     */
+    getNodeState(node: TreeNode) {
+        for (let activeNode of this.activeNodes) {
+            if (activeNode.node == node)
+                return activeNode.state;
         }
     };
 
     /**
      * Sets the state of a node
-     * @param state 
-     * @param node 
+     * @param state
+     * @param node
      */
-    setState(state: string, node?: any): string {
+    setNodeState(node: TreeNode, state: string): string {
+        let active = false;
 
-        if (!node)
-            node = this.currentNode;
-
-        for (var i = 0; i < this.nodeAndState.length; i++) {
-            if (this.nodeAndState[i][0] == node) {
-                this.nodeAndState.splice(i, 1);
+        for (let activeNode of this.activeNodes) {
+            if (activeNode.node == node) {
+                activeNode.state = state;
+                active = true;
                 break;
             }
         }
-        this.nodeAndState.push([node, state]);
+
+        if (!active) {
+            this.activeNodes.push({ node: node, state: state });
+        }
 
         return state;
     };
 
-    //commodity methods
-    hasToStart() {
-        var state = this.findStateForNode(this.currentNode);
-        return state != BehaviourTreeInstance.STATE_EXECUTING && state != BehaviourTreeInstance.STATE_COMPUTE_RESULT;
-    };
-
-    hasToComplete() {
-        var state = this.findStateForNode(this.currentNode);
-        return state == BehaviourTreeInstance.STATE_COMPUTE_RESULT;
-    };
-
-    completedAsync() {
-
-        if (!this.currentNode)
-            return false;
-
-        if (this.currentNode.isConditional())
-            this.setState(BehaviourTreeInstance.STATE_COMPUTE_RESULT);
-        else
-            this.setState(BehaviourTreeInstance.STATE_COMPLETED);
-    };
-
-    waitUntil(callback) {
-        this.setState(BehaviourTreeInstance.STATE_EXECUTING);
-        callback();
-    };
 
 	/**
 	 * This is the function that crawls the behaviour tree instance you pass to it
@@ -118,93 +107,98 @@ export default class BehaviourTreeInstance {
         //find current node to be executed, or a running one, or root to launch, or root completed
         this.currentNode = this.findCurrentNode(this.behaviourTree);
 
+        // if the tree has been fully traversed
         if (this.currentNode == null) {
             this.numberOfRuns++;
+            // reset all and restart
             if (this.numberOfLoops == 0 || this.numberOfRuns < this.numberOfLoops) {
-                this.nodeAndState = [];
+                this.activeNodes = [];
                 this.currentNode = this.findCurrentNode(this.behaviourTree);
-            } else {
+            }
+            // or stop here
+            else {
                 this.finished = true;
                 return;
             }
         }
 
-        let state: string = this.findStateForNode(this.currentNode);
+        // Run the current node and mark it as success or failure
+        if (this.getNodeState(this.currentNode) == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
+            let nodeExecutionResult: boolean = this.currentNode.execute(this);
+            this.updateTaskState(nodeExecutionResult);
+        }
+    }
 
-        if (state == null || state == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
+    /**
+     * updates the state of a leaf (task) node. If result is null, then it means we don't have a result yet (async)
+     * @param nodeExecutionResult
+     */
+    updateTaskState(nodeExecutionResult: boolean) {
+        if (nodeExecutionResult !== null) {
 
-            //first call to execute
-            //if the node is async, this will be the first of a two part call
-            var result = this.currentNode.execute(this);
+            let parentNode: any = this.currentNode.parent;
 
-            var afterState = this.findStateForNode(this.currentNode);
+            if (parentNode && parentNode.type == "Decorator") {
+                // if it's an inverter node, invert the result
+                if (parentNode.name == "Inverter") nodeExecutionResult = !nodeExecutionResult;
 
-            //if the node is async, it will set the state to STATE_EXECUTING
-            if (afterState == null || afterState == BehaviourTreeInstance.STATE_TO_BE_STARTED) {
-                this.setState(BehaviourTreeInstance.STATE_COMPLETED);
+                // if it's a succeeder node, set result to true
+                if (parentNode.name == "Succeeder") nodeExecutionResult = true;
+
+                this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+                // make the parent of the leaf the parent of the decorator instead
+                parentNode = parentNode.parent;
             }
 
-            return result;
+
+            if (nodeExecutionResult === false) {
+                this.setNodeState(this.currentNode, BehaviourTreeInstance.STATE_FAILURE);
+
+                // if it's a sequencer node, stop as soon as a child fails
+                if (parentNode && parentNode.name == "Sequencer") this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+            }
+            else {
+                this.setNodeState(this.currentNode, BehaviourTreeInstance.STATE_SUCCESS);
+
+                // if it's a selector node, stop it as soon as a child succeeds
+                if (parentNode && parentNode.name == "Selector") this.setNodeState(parentNode, BehaviourTreeInstance.STATE_DONE);
+            }
         }
+    }
 
-        //this is the case we have to call the second execute
-        //on the async node, which will bring it compute the final result and end
-        if (state == BehaviourTreeInstance.STATE_COMPUTE_RESULT) {
+    /**
+     * This is a recursive function, does a lot of work in few lines of code.
+     * Finds in the behaviour tree instance the currend node that is either to be
+     * executed or is executing (async). Also marks all parent nodes completed
+     * when necessary.
+     * @param node
+     */
+    findCurrentNode(node: TreeNode): TreeNode {
 
-            var result = this.currentNode.execute(this);
-            this.setState(BehaviourTreeInstance.STATE_COMPLETED);
-            return result;
-        }
-    };
+        // if node is not active, get it ready
+        var state = this.getNodeState(node) || this.setNodeState(node, BehaviourTreeInstance.STATE_TO_BE_STARTED);
 
-    // This is a recursive function, does a lot of work in few lines of code.
-    // Finds in the behaviour tree instance the currend node that is either to be
-    // executed or is executing (async). Also marks all parent nodes completed
-    // when necessary.
-    findCurrentNode(node) {
+        if (state == BehaviourTreeInstance.STATE_DONE) return null;
 
-        var state = this.findStateForNode(node);
-
-        if (state == BehaviourTreeInstance.STATE_DISCARDED)
-            return null;
-
-        if (state == null) {
-            state = this.setState(BehaviourTreeInstance.STATE_TO_BE_STARTED, node);
-        }
-
-        if (state == BehaviourTreeInstance.STATE_EXECUTING ||
-            state == BehaviourTreeInstance.STATE_COMPUTE_RESULT ||
+        if (state == BehaviourTreeInstance.STATE_RUNNING ||
             state == BehaviourTreeInstance.STATE_TO_BE_STARTED
         )
             return node;
 
 
-        var children = node.children();
 
-        if (children == null) {
-            return null;
-        } else {
-
-            for (var i = 0; i < children.length; i++) {
-                var childNode = this.findCurrentNode(children[i]);
-                if (childNode)
-                    return childNode;
+        if (node.children) {
+            for (let child of node.children) {
+                let currentNode = this.findCurrentNode(child);
+                if (currentNode)
+                    return currentNode;
             }
 
-            if (state == BehaviourTreeInstance.STATE_WAITING) {
-                this.setState(BehaviourTreeInstance.STATE_COMPLETED, node);
-            }
+            // all children are traversed, mark node as done
+            this.setNodeState(node, BehaviourTreeInstance.STATE_DONE);
         }
 
         return null;
+
     };
 }
-
-
-
-
-
-
-
-
-

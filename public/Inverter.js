@@ -18,17 +18,16 @@ var Composite_1 = require("./Composite");
 /**
  * This is a selector that executes all actions in sequence.
  */
-var SelectorNode = /** @class */ (function (_super) {
-    __extends(SelectorNode, _super);
-    function SelectorNode(children) {
-        return _super.call(this, "Selector", "Composite", children) || this;
+var InverterNode = /** @class */ (function (_super) {
+    __extends(InverterNode, _super);
+    function InverterNode(children) {
+        return _super.call(this, "Inverter", "Decorator", children) || this;
     }
-    SelectorNode.prototype.execute = function (behaviourTreeInstance) {
-        //        shuffle(this.children);
+    InverterNode.prototype.execute = function (behaviourTreeInstance) {
         behaviourTreeInstance.setNodeState(this, simpleBehaviourTreeModel_1.default.STATE_WAITING);
         behaviourTreeInstance.setNodeState(this.children[0], simpleBehaviourTreeModel_1.default.STATE_TO_BE_STARTED);
         return null;
     };
-    return SelectorNode;
+    return InverterNode;
 }(Composite_1.default));
-exports.default = SelectorNode;
+exports.default = InverterNode;
